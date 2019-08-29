@@ -1,6 +1,28 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { auth, createUserProfileDocument } from "../../Firebase.utils";
+import history from "../../History";
 
+const signOut = () => {
+  auth.signOut();
+  history.push("/login");
+};
 const Navbar = () => {
+  const [user, setUser] = useState({});
+  useEffect(() => {
+    initUser();
+    return () => initUser();
+  }, []);
+  const initUser = () => {
+    return auth.onAuthStateChanged(async authUser => {
+      if (authUser) {
+        await createUserProfileDocument(authUser);
+        setUser({ name: authUser.displayName });
+      } else {
+        history.push('/login')
+      }
+    });
+  };
+
   return (
     <nav className="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
       {/* Sidebar Toggle (Topbar) */}
@@ -203,12 +225,8 @@ const Navbar = () => {
             aria-expanded="false"
           >
             <span className="mr-2 d-none d-lg-inline text-gray-600 small">
-              Valerie Luna
+              {user.name || "Loading..."}
             </span>
-            <img
-              className="img-profile rounded-circle"
-              src="https://source.unsplash.com/QAB-WJcbgJk/60x60"
-            />
           </a>
           {/* Dropdown - User Information */}
           <div
@@ -233,6 +251,7 @@ const Navbar = () => {
               href="#"
               data-toggle="modal"
               data-target="#logoutModal"
+              onClick={signOut}
             >
               <i className="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400" />
               Logout

@@ -1,22 +1,18 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Map, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 const MapControll = props => {
-  const revBtnRef = useRef();
-  const delBtnRef = useRef();
+  const [btnCondition, setBtnCondition] = useState(true);
   const mapRef = useRef();
   const [position, setPosition] = useState([]);
   const [marker, setMarker] = useState([]);
   useEffect(() => {
     props.tab(mapRef);
+    initMapValue();
   }, []);
-  const disabledBtn = () => {
-    revBtnRef.current.setAttribute("disabled", "");
-    delBtnRef.current.setAttribute("disabled", "");
-  };
-  const enableBtn = () => {
-    revBtnRef.current.removeAttribute("disabled");
-    delBtnRef.current.removeAttribute("disabled");
-  };
+  const initMapValue = () => {
+    const data = props.mapData || [];
+    setPosition(data);
+  }
   const onMapClick = e => {
     if (marker.length > 1) {
       marker.pop();
@@ -24,7 +20,7 @@ const MapControll = props => {
     }
     setPosition([...position, e.latlng]);
     setMarker([...marker, e.latlng]);
-    enableBtn();
+    setBtnCondition(false);
   };
   const renderMarker = () => {
     if (marker.length === 0) {
@@ -39,7 +35,7 @@ const MapControll = props => {
     });
   };
   const revLine = () => {
-    if (position.length != 1) {
+    if (position.length !== 1) {
       position.pop();
       marker.pop();
       setPosition([...position]);
@@ -51,8 +47,12 @@ const MapControll = props => {
   const delLine = () => {
     setPosition([]);
     setMarker([]);
-    disabledBtn();
+    setBtnCondition(!btnCondition);
   };
+  const getValue = () => {
+    setBtnCondition(!btnCondition);
+    props.getValue(position)
+  }
   return (
     <div className="card">
       <div
@@ -63,26 +63,40 @@ const MapControll = props => {
           Input Koordinat Jalan
         </h6>
         <button
+          type="button"
           id="revise"
           className="btn btn-circle btn-info add-table-header--2"
           data-toggle="tooltip"
           data-placement
           title="Revisi Data"
-          ref={revBtnRef}
           onClick={revLine}
+          disabled={btnCondition}
         >
           <i className="fa fa-sync" />
         </button>
         <button
+          type="button"
           id="deleteAll"
           className=" btn btn-circle btn-danger"
           data-toggle="tooltip"
           data-placement
           title="Hapus Data"
-          ref={delBtnRef}
           onClick={delLine}
+          disabled={btnCondition}
         >
           <i className="fa fa-trash" />
+        </button>
+        <button
+          type="button"
+          id="deleteAll"
+          className=" btn btn-circle btn-success"
+          data-toggle="tooltip"
+          data-placement
+          title="Simpan Data"
+          onClick={getValue}
+          disabled={btnCondition}
+        >
+          <i className="fa fa-download" />
         </button>
       </div>
       <div className="card-body">
